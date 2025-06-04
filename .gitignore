@@ -3,22 +3,76 @@
 
 # Ignore Python virtual environment
 venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
 # Ignore Node.js dependencies
 node_modules/
 
 # Ignore macOS specific files
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
 
 # Ignore build artifacts for Next.js
 .next/
+out/
+build/
 
 # Ignore PyCharm files
 .idea/
+.vscode/
+*.swp
+*.swo
 
 # Ignore temporary files
 *.tmp
 *.temp
+*.log
+logs/
+*.log.*
+
+# Ignore ChromaDB files
+chroma_db/
+*.sqlite3
+*.bin
+*.index
+*.faiss
+
+# Ignore test coverage reports
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Ignore local development files
+*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Ignore editor swap files
 *~ 
