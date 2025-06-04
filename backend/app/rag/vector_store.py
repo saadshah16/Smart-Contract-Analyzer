@@ -99,4 +99,45 @@ class VectorStoreManager:
         return {
             "count": self.collection.count(),
             "name": self.collection.name
-        } 
+        }
+        
+    def get_documents_by_metadata(self, metadata_filter: Dict[str, Any], include: List[str] = ["documents", "metadatas"]) -> Dict[str, Any]:
+        """Get documents from the collection based on metadata filters.
+        
+        Args:
+            metadata_filter (Dict[str, Any]): The filter conditions for metadata.
+            include (List[str]): List of data types to include in the response (e.g., "documents", "metadatas").
+            
+        Returns:
+            Dict[str, Any]: Documents and metadata matching the filter.
+        """
+        try:
+            results = self.collection.get(
+                where=metadata_filter,
+                include=include,
+            )
+            return results
+        except Exception as e:
+            print(f"Error getting documents by metadata: {e}")
+            raise e
+
+    def get_all_documents(self) -> Dict[str, Any]:
+        """Get all documents from the collection.
+        
+        Returns:
+            Dict[str, Any]: All documents with their metadata
+        """
+        try:
+            # Get the total count of documents
+            count = self.collection.count()
+            
+            # Fetch all documents
+            results = self.collection.get(
+                include=["documents", "metadatas"],
+                limit=count
+            )
+            
+            return results
+        except Exception as e:
+            print(f"Error getting all documents: {e}")
+            raise e 

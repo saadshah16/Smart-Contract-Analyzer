@@ -5,6 +5,7 @@ from ..rag import RAGService
 import os
 from dotenv import load_dotenv
 import traceback
+import logging
 
 # Load environment variables
 load_dotenv()
@@ -15,6 +16,9 @@ router = APIRouter(
     tags=["RAG"],
     responses={404: {"description": "Not found"}},
 )
+
+# Configure logger for this module
+logger = logging.getLogger(__name__)
 
 # Initialize RAG service
 rag_service = RAGService(
@@ -29,6 +33,7 @@ class ContractInput(BaseModel):
 
 class QueryInput(BaseModel):
     question: str
+    contract_name: Optional[str] = None
 
 class KnowledgeBaseItem(BaseModel):
     content: str
@@ -40,6 +45,9 @@ class KnowledgeBaseItem(BaseModel):
     references: Optional[List[str]] = None
     code_example: Optional[str] = None
     description: Optional[str] = None
+
+class StoredContractAnalysisInput(BaseModel):
+    contract_name: str
 
 @router.post("/add-contract")
 async def add_contract(contract: ContractInput) -> Dict[str, Any]:
@@ -87,10 +95,19 @@ async def query_contract(query: QueryInput) -> Dict[str, Any]:
 async def get_stats() -> Dict[str, Any]:
     """Get statistics about the RAG system."""
     try:
-        stats = rag_service.get_collection_stats()
+        # Get basic collection stats
+        collection_stats = rag_service.get_collection_stats()
+        
+        # Get detailed contract information
+        contracts = rag_service.get_contract_details()
+        
         return {
             "success": True,
-            "stats": stats
+            "stats": {
+                "total_contracts": collection_stats["count"],
+                "collection_name": collection_stats["name"],
+                "contracts": contracts
+            }
         }
     except Exception as e:
         raise HTTPException(
@@ -169,4 +186,29 @@ async def reset_knowledge_base() -> Dict[str, Any]:
         raise HTTPException(
             status_code=500,
             detail=f"Error resetting knowledge base: {str(e)}"
+        )
+
+@router.post("/analyze-stored")
+async def analyze_stored_contract_endpoint(input: StoredContractAnalysisInput) -> Dict[str, Any]:
+    """Analyze a smart contract already stored in the RAG system."""
+    try:
+        logger.info(f"Received request to analyze stored contract: {input.contract_name}")
+        analysis_result = rag_service.analyze_stored_contract(input.contract_name)
+        logger.info(f"Analysis complete for stored contract: {input.contract_name}")
+        return {
+            "success": True,
+            "message": "Stored contract analyzed successfully",
+            "analysis": analysis_result
+        }
+    except ValueError as e:
+        logger.error(f"Error analyzing stored contract {input.contract_name}: {e}")
+        raise HTTPException(
+            status_code=404, # Use 404 if the contract name is not found
+            detail=f"Contract not found: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Error analyzing stored contract {input.contract_name}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error analyzing stored contract: {str(e)}"
         ) 

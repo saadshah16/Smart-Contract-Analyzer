@@ -2,6 +2,7 @@ from typing import List, Dict, Any, Optional
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import uuid
 import re
+from datetime import datetime
 
 class DocumentProcessor:
     def __init__(
@@ -63,7 +64,8 @@ class DocumentProcessor:
                 "contract_name": contract_name,
                 "chunk_index": i,
                 "total_chunks": len(chunks),
-                "source": "smart_contract"
+                "source": "smart_contract",
+                "timestamp": datetime.now().isoformat()
             }
             
             if contract_address:
