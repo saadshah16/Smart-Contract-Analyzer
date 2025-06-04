@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from ..rag import RAGService
 import os
 from dotenv import load_dotenv
@@ -29,6 +29,17 @@ class ContractInput(BaseModel):
 
 class QueryInput(BaseModel):
     question: str
+
+class KnowledgeBaseItem(BaseModel):
+    content: str
+    category: str
+    pattern_type: str
+    severity: int = 0
+    standard: Optional[str] = None
+    version: Optional[str] = None
+    references: Optional[List[str]] = None
+    code_example: Optional[str] = None
+    description: Optional[str] = None
 
 @router.post("/add-contract")
 async def add_contract(contract: ContractInput) -> Dict[str, Any]:
@@ -100,4 +111,62 @@ async def reset_collection() -> Dict[str, Any]:
         raise HTTPException(
             status_code=500,
             detail=f"Error resetting collection: {str(e)}"
+        )
+
+@router.post("/knowledge/add")
+async def add_knowledge_item(item: KnowledgeBaseItem) -> Dict[str, Any]:
+    """Add an item to the knowledge base."""
+    try:
+        result = rag_service.add_knowledge_item(
+            content=item.content,
+            category=item.category,
+            pattern_type=item.pattern_type,
+            severity=item.severity,
+            standard=item.standard,
+            version=item.version,
+            references=item.references,
+            code_example=item.code_example,
+            description=item.description
+        )
+        return {
+            "success": True,
+            "message": "Knowledge item added successfully",
+            "item": result
+        }
+    except Exception as e:
+        print("🔥 ERROR IN /knowledge/add ENDPOINT:")
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error adding knowledge item: {str(e)}"
+        )
+
+@router.get("/knowledge/stats")
+async def get_knowledge_stats() -> Dict[str, Any]:
+    """Get statistics about the knowledge base."""
+    try:
+        stats = rag_service.get_knowledge_stats()
+        return {
+            "success": True,
+            "stats": stats
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error getting knowledge stats: {str(e)}"
+        )
+
+@router.post("/knowledge/reset")
+async def reset_knowledge_base() -> Dict[str, Any]:
+    """Reset the knowledge base collection."""
+    try:
+        rag_service.reset_knowledge_base()
+        return {
+            "success": True,
+            "message": "Knowledge base reset successfully"
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error resetting knowledge base: {str(e)}"
         ) 
